@@ -27,16 +27,30 @@ class TanggapanResource extends Resource
             ->schema([
                 Forms\Components\Select::make('aduan_id')
                     ->label('Aduan')
-                    ->relationship('aduan', 'judul')
+                    ->relationship(
+                        name: 'aduan',
+                        titleAttribute: 'judul',
+                        modifyQueryUsing: fn ($query) => $query->where('status', 'diproses')
+                    )
+                    ->preload()
                     ->required(),
-
                 Forms\Components\Select::make('user_id')
                     ->label('Penanggap')
-                    ->relationship('user', 'name')
+                    ->relationship(
+                        name: 'user',
+                        titleAttribute: 'name',
+                        modifyQueryUsing: function ($query) {
+                            $query->whereHas('roles', function ($query) {
+                                $query->where('name', 'super_admin');
+                            });
+                        }
+                    )
+                    ->preload()
                     ->required(),
-
                 Forms\Components\Textarea::make('isi_tanggapan')->required(),
-                Forms\Components\DateTimePicker::make('tanggal_tanggapan')->required(),
+                Forms\Components\DateTimePicker::make('tanggal_tanggapan')
+                    ->required()
+                    ->default(now()),
             ]);
     }
 

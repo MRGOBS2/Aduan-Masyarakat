@@ -25,6 +25,6 @@ class Aduan extends Model
 
     public function tanggapan()
     {
-        return $this->hasMany(Tanggapan::class);
+        return $this->hasOne(Tanggapan::class);
     }
 }

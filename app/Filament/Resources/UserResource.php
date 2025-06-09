@@ -12,6 +12,13 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Radio;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Section;
+use Filament\Tables\Columns\ImageColumn;
 
 class UserResource extends Resource
 {
@@ -37,6 +44,34 @@ class UserResource extends Resource
                     ->password()
                     ->required()
                     ->maxLength(255),
+                Forms\Components\Select::make('roles')
+                    ->label('Roles')
+                    ->relationship('roles', 'name')
+                    ->multiple()
+                    ->preload()
+                    ->required(),
+                Forms\Components\TextInput::make('kontak')
+                    ->label('Kontak')
+                    ->maxLength(12)
+                    ->required(),
+                Forms\Components\TextInput::make('alamat')
+                    ->label('Alamat')
+                    ->maxLength(255)
+                    ->required(),
+                Forms\Components\Radio::make('jenis_kelamin')
+                    ->label('Jenis Kelamin')
+                    ->options([
+                        'laki-laki' => 'Laki-laki',
+                        'perempuan' => 'Perempuan',
+                    ])
+                    ->inline()
+                    ->required(),
+                FileUpload::make('foto_profil')
+                    ->label('Foto Profil')
+                    ->image()
+                    ->disk('public')
+                    ->nullable()
+                    ->imagePreviewHeight('150'),
             ]);
     }
 
@@ -44,9 +79,17 @@ class UserResource extends Resource
     {
         return $table
             ->columns([
+                ImageColumn::make('foto_profil')
+                    ->label('Foto Profil')
+                    ->circular()
+                    ->height(40)
+                    ->width(40),
                 Tables\Columns\TextColumn::make('name')->searchable(),
                 Tables\Columns\TextColumn::make('email')->searchable(),
-                Tables\Columns\TextColumn::make('created_at')->dateTime(),
+                Tables\Columns\TextColumn::make('roles.name')->label('Roles'),
+                Tables\Columns\TextColumn::make('jenis_kelamin')->label('Jenis Kelamin'),
+                Tables\Columns\TextColumn::make('kontak')->label('Kontak'),
+                Tables\Columns\TextColumn::make('alamat')->label('Alamat'),
             ])
             ->filters([
                 //

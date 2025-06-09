@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('lokasi');
             $table->text('isi_aduan');
             $table->string('gambar_aduan')->nullable();
-            $table->enum('status', ['pending', 'diproses', 'ditolak', 'selesai'])->default('pending');
+            $table->enum('status', ['diproses', 'ditolak', 'selesai'])->default('diproses');
             $table->dateTime('tanggal_aduan');
             $table->timestamps();
         });

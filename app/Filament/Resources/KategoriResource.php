@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\KategoriResource\Pages;
 use App\Filament\Resources\KategoriResource\RelationManagers;
 use App\Models\Kategori;
+use App\Models\Aduan;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -12,6 +13,10 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Collection;
+use Filament\Notifications\Notification;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteBulkAction;
 
 class KategoriResource extends Resource
 {
@@ -43,8 +48,43 @@ class KategoriResource extends Resource
                 Tables\Actions\ViewAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                BulkActionGroup::make([
+                    DeleteBulkAction::make()
+                        ->action(function (Collection $records) {
+                            $cannotDelete = [];
+                            $canDelete = [];
+
+                            foreach ($records as $record) {
+                                // Cek apakah kategori punya aduan
+                                if ($record->aduan()->exists()) {
+                                    $cannotDelete[] = $record->nama;
+                                } else {
+                                    $canDelete[] = $record;
+                                }
+                            }
+
+                            // Hapus yang bisa dihapus
+                            if (count($canDelete) > 0) {
+                                foreach ($canDelete as $record) {
+                                    $record->delete();
+                                }
+
+                                Notification::make()
+                                    ->title('Berhasil menghapus ' . count($canDelete) . ' kategori')
+                                    ->success()
+                                    ->send();
+                            }
+
+                            // Notifikasi yang tidak bisa dihapus
+                            if (count($cannotDelete) > 0) {
+                                Notification::make()
+                                    ->title('Beberapa kategori tidak dapat dihapus')
+                                    ->body('Kategori berikut memiliki aduan dan tidak dapat dihapus: ' . implode(', ', $cannotDelete))
+                                    ->warning()
+                                    ->send();
+                            }
+                        })
+                        ->deselectRecordsAfterCompletion(),
                 ]),
             ]);
     }

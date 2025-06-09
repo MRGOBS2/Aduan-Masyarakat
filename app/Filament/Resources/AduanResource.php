@@ -15,6 +15,10 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Tables\Columns\ImageColumn;
+use Illuminate\Support\Collection;
+use Filament\Notifications\Notification;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteBulkAction;
 
 class AduanResource extends Resource
 {
@@ -28,11 +32,21 @@ class AduanResource extends Resource
             ->schema([
                 Forms\Components\Select::make('user_id')
                     ->label('Pelapor')
-                    ->relationship('user', 'name')
+                    ->relationship(
+                        name: 'user',
+                        titleAttribute: 'name',
+                        modifyQueryUsing: function ($query) {
+                            $query->whereHas('roles', function ($query) {
+                                $query->where('name', 'masyarakat');
+                            });
+                        }
+                    )
+                    ->preload()
                     ->required(),
                 Forms\Components\Select::make('kategori_id')
                     ->label('Kategori')
                     ->relationship('kategori', 'nama')
+                    ->preload()
                     ->required(),
                 Forms\Components\TextInput::make('judul')
                     ->required()
@@ -50,14 +64,16 @@ class AduanResource extends Resource
                     ->label('Gambar Aduan'),
                 Forms\Components\Radio::make('status')
                     ->options([
-                        'pending' => 'Pending',
                         'diproses' => 'Diproses',
-                        'ditolak' => 'Ditolak',
+                        // 'ditolak' => 'Ditolak',
                         'selesai' => 'Selesai',
                     ])
-                    ->default('pending')
-                    ->required(),
-                Forms\Components\DateTimePicker::make('tanggal_aduan')->required(),
+                    ->default('diproses')
+                    ->required()
+                    ->disabled(),
+                Forms\Components\DateTimePicker::make('tanggal_aduan')
+                    ->required()
+                    ->default(now()),
             ]);
     }
 
@@ -75,7 +91,14 @@ class AduanResource extends Resource
                     ->height(60)
                     ->width(60)
                     ->size(50),
-                Tables\Columns\TextColumn::make('status')->badge(),
+                Tables\Columns\TextColumn::make('status')
+                    ->badge()
+                    ->colors([
+                        'warning' => 'diproses',
+                        'danger' => 'ditolak',
+                        'success' => 'selesai',
+                    ])
+                    ,
                 Tables\Columns\TextColumn::make('tanggal_aduan')->dateTime(),
             ])
             ->filters([
@@ -86,8 +109,43 @@ class AduanResource extends Resource
                 Tables\Actions\ViewAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                BulkActionGroup::make([
+                    DeleteBulkAction::make()
+                        ->action(function (Collection $records) {
+                            $cannotDelete = [];
+                            $canDelete = [];
+
+                            foreach ($records as $record) {
+                                // Cek apakah aduan punya tanggapan
+                                if ($record->tanggapan()->exists()) {
+                                    $cannotDelete[] = $record->judul;
+                                } else {
+                                    $canDelete[] = $record;
+                                }
+                            }
+
+                            // Hapus yang bisa dihapus
+                            if (count($canDelete) > 0) {
+                                foreach ($canDelete as $record) {
+                                    $record->delete();
+                                }
+
+                                Notification::make()
+                                    ->title('Berhasil menghapus ' . count($canDelete) . ' aduan')
+                                    ->success()
+                                    ->send();
+                            }
+
+                            // Notifikasi yang tidak bisa dihapus
+                            if (count($cannotDelete) > 0) {
+                                Notification::make()
+                                    ->title('Beberapa aduan tidak dapat dihapus')
+                                    ->body('Aduan berikut memiliki tanggapan dan tidak dapat dihapus: ' . implode(', ', $cannotDelete))
+                                    ->warning()
+                                    ->send();
+                            }
+                        })
+                        ->deselectRecordsAfterCompletion(),
                 ]),
             ]);
     }

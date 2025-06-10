@@ -35,19 +35,23 @@ class TanggapanResource extends Resource
                     )
                     ->preload()
                     ->required(),
-                Forms\Components\Select::make('user_id')
+                // Forms\Components\Select::make('user_id')
+                //     ->label('Penanggap')
+                //     ->relationship(
+                //         name: 'user',
+                //         titleAttribute: 'name',
+                //         modifyQueryUsing: function ($query) {
+                //             $query->whereHas('roles', function ($query) {
+                //                 $query->where('name', 'super_admin');
+                //             });
+                //         }
+                //     )
+                //     ->preload()
+                //     ->required(),
+                Forms\Components\TextInput::make('user_id')
                     ->label('Penanggap')
-                    ->relationship(
-                        name: 'user',
-                        titleAttribute: 'name',
-                        modifyQueryUsing: function ($query) {
-                            $query->whereHas('roles', function ($query) {
-                                $query->where('name', 'super_admin');
-                            });
-                        }
-                    )
-                    ->preload()
-                    ->required(),
+                    ->default(auth()->user()->name)
+                    ->disabled(),
                 Forms\Components\Textarea::make('isi_tanggapan')->required(),
                 Forms\Components\DateTimePicker::make('tanggal_tanggapan')
                     ->required()

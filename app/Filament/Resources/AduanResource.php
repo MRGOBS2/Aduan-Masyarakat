@@ -31,19 +31,23 @@ class AduanResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Select::make('user_id')
+                // Forms\Components\Select::make('user_id')
+                //     ->label('Pelapor')
+                //     ->relationship(
+                //         name: 'user',
+                //         titleAttribute: 'name',
+                //         modifyQueryUsing: function ($query) {
+                //             $query->whereHas('roles', function ($query) {
+                //                 $query->where('name', 'masyarakat');
+                //             });
+                //         }
+                //     )
+                //     ->preload()
+                //     ->required(),
+                Forms\Components\TextInput::make('name')
                     ->label('Pelapor')
-                    ->relationship(
-                        name: 'user',
-                        titleAttribute: 'name',
-                        modifyQueryUsing: function ($query) {
-                            $query->whereHas('roles', function ($query) {
-                                $query->where('name', 'masyarakat');
-                            });
-                        }
-                    )
-                    ->preload()
-                    ->required(),
+                    ->default(auth()->user()->name)
+                    ->disabled(),
                 Forms\Components\Select::make('kategori_id')
                     ->label('Kategori')
                     ->relationship('kategori', 'nama')

@@ -26,6 +26,8 @@ class AduanResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-chat-bubble-left-ellipsis';
     protected static ?string $navigationLabel = 'Aduan';
+    protected static ?string $pluralModelLabel = 'Aduan';
+    protected static ?string $modelLabel = 'Aduan';
 
     public static function form(Form $form): Form
     {

@@ -21,6 +21,8 @@ class TanggapanResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-chat-bubble-left-right';
     protected static ?string $navigationLabel = 'Tanggapan';
+    protected static ?string $pluralModelLabel = 'Tanggapan';
+    protected static ?string $modelLabel = 'Tanggapan';
 
     public static function form(Form $form): Form
     {

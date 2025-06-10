@@ -24,7 +24,8 @@ class AduanResource extends Resource
 {
     protected static ?string $model = Aduan::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-chat-bubble-left-ellipsis';
+    protected static ?string $navigationLabel = 'Aduan';
 
     public static function form(Form $form): Form
     {

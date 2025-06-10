@@ -20,6 +20,7 @@ class TanggapanResource extends Resource
     protected static ?string $model = Tanggapan::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-chat-bubble-left-right';
+    protected static ?string $navigationLabel = 'Tanggapan';
 
     public static function form(Form $form): Form
     {
